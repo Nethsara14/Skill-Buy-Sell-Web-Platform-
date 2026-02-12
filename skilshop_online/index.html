@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Skill Shop</title>
+
+        <link rel="stylesheet" href="css/style.css" />
+        <link rel="icon" type="image/png" href="/assets/images/icon.png" />
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Auth Container -->
+            <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+                <!-- Header Section -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-10 text-center text-white">
+                    <h1 class="text-4xl font-bold mb-2">SkillShop</h1>
+                    <p class="text-blue-100">Buy and Sell Skills with Confidence</p>
+                </div>
+
+                <!-- Form Container -->
+                <div class="px-8 py-8">
+                    <!-- Sign In Form -->
+                    <div id="signin-form" class="form-container active">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h2>
+                        <p class="text-gray-600 mb-6">Sign in to your account to continue</p>
+
+                        <form id="signin" class="space-y-4">
+                            <input type="hidden" name="action" value="signin" />
+
+                            <!-- Email Input -->
+                            <div>
+                                <label for="signin-email" class="block text-gray-700 text-sm font-semibold mb-2"> Email Address </label>
+
+                                <input type="email" name="email" id="signin-email" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                            </div>
+
+                            <!-- Password Input -->
+                            <div class="relative">
+                                <label for="signin-password" class="block text-gray-700 text-sm font-semibold mb-2"> Password </label>
+                                <input type="password" name="password" id="signin-password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+
+                                <button type="button" onclick="togglePassword('signin-password', this)" class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1">👁️</button>
+                            </div>
+
+                            <!-- Remember Me & Forgot Password -->
+                            <div class="flex items-center justify-between">
+                                <label for="remember" class="flex items-center">
+                                    <input type="checkbox" name="remember" id="remember" class="w-4 text-blue-600 rounded" />
+                                    <span class="ml-2 text-sm text-gray-600">Remember Me</span>
+                                </label>
+                                <a href="#" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Forgot Password</a>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 
+                                           rounded-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 
+                                           tranform hover:scale-105 mt-6">
+                                 Sign In
+                            </button>
+
+                            <!-- Error Message -->
+                            <div id="signin-massage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+
+                        </form>
+
+                        <p class="text-center text-gray-600 my-6">
+                            Don't have an account?
+                            <button class="text-blue-600 hover:text-blue-700 font-bold cursor-pointer" onclick="toggleForms()">Sign Up</button>
+                        </p>
+                    </div>
+
+                    <!-- Sign Up From -->
+                    <div id="signup-form" class="form-container hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
+                        <p class="text-gray-600 mb-6">Join thousands of skill sellers and buyers</p>
+
+                        <form class="space-y-4">
+                            <input type="hidden" name="action" value="signup" />
+
+                            <!-- First Name Input -->
+                            <div>
+                                <label for="signup-firstname" class="block text-gray-700 text-sm font-semibold mb-2">First Name</label>
+                                <input type="text" name="firstname" id="signup-firstname" placeholder="Sahan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <span class="text-red-500 text-sm hidden" id="signup-firstname-error"></span>
+                            </div>
+
+                            <!-- Last Name Input -->
+                            <div>
+                                <label for="signup-lastname" class="block text-gray-700 text-sm font-semibold mb-2">Last Name</label>
+                                <input type="text" 
+                                      name="lastname" 
+                                      id="signup-lastname" 
+                                      placeholder="Perera" 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
+                                             focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <span class="text-red-500 text-sm hidden" id="signup-lastname-error"></span>
+                            </div>
+
+                            <!-- Email Address Input -->
+                            <div>
+                                <label for="signup-email" class="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
+                                <input type="text" name="email" id="signup-email" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <span class="text-red-500 text-sm hidden" id="signup-email-error"></span>
+                            </div>
+
+                            <!-- Password Input -->
+                            <div class="relative">
+                                <label for="signup-password" class="block text-gray-700 text-sm font-semibold">Password</label>
+                                <input type="password" 
+                                       name="password" 
+                                       id="signup-password" 
+                                       placeholder="••••••••" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
+                                              focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" 
+                                              aria-describedby="signup-password-error" />
+                                <button type="button" onclick="togglePassword('signup-password', this)" 
+                                        class="absolute right-3 top-1/2 -translate-y-3 text-gray-500 focus:outline-none
+                                               focus-ring-2 focus:ring-blue-500 rounded px-1" 
+                                               aria-label="Toggle password visibility" 
+                                               aria-pressed="false">👁️</button>
+                                <p class="text-xs text-gray-500 mt-1">Minimum 8 charachters</p>
+                                <span class="text-red-500 text-sm hidden" id="signup-password-error"></span>
+                            </div>
+
+                            <!-- Comfirm Password Input -->
+                            <div class="relative">
+                                <label for="signup-comfirm" class="block text-gray-700 text-sm font-semibold">Password</label>
+                                <input type="password" name="password" id="signup-comfirm" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" aria-describedby="signup-comfirm-error" />
+                                <button type="button" onclick="togglePassword('signup-comfirm', this)" 
+                                        class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus-ring-2 
+                                               focus:ring-blue-500 rounded px-1" 
+                                               aria-label="Toggle password visibility" 
+                                               aria-pressed="false">👁️</button>
+                                <span class="text-red-500 text-sm hidden" id="signup-comfirm-error"></span>
+                            </div>
+
+                            <!-- Account Type Selection -->
+                            <div>
+                                <label class="block text-gray-700 text-sm font-semibold mb-3">I am a</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <label for="account_type_seller" class="relative flex items-center cursor-pointer">
+                                        <input type="radio" name="account_type" value="seller" class="w-4 h-4 text-blue-600" id="account_type_seller" />
+                                        <span class="ml-2 text-sm text-gray-700">Skill Seller</span>
+                                    </label>
+
+                                    <label for="account_type_buyer" class="relative flex items-center cursor-pointer">
+                                        <input type="radio" name="account_type" value="buyer" class="w-4 h-4 text-blue-600" id="account_type_buyer" />
+                                        <span class="ml-2 text-sm text-gray-700">Skill Buyer</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <label for="terms_conditions" class="flex items-center">
+                                <input type="checkbox" name="terms" id="terms_conditions" class="w-4 h-4 text-blue-600 rounded" />
+                                <span class="ml-2 text-sm text-gray-600"
+                                    >I agree to the
+                                    <a href="#" class="text-blue-600 hover:text-blue-700 font-medium"> Terms & Conditions </a>
+                                </span>
+                            </label>
+
+                            <!-- create Account Button -->
+                            <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 
+                                           rounded-lg hover:from-blue-700 hover:to-indigo-700 transition hover:scale-105 mt-6" 
+                                           type="button">Create Account</button>
+
+                            <!-- Error Message-->
+                            <div id="signup-massage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+                        </form>
+
+                        <p class="text-center text-gray-600 mt-6">
+                            Already have an account?
+                            <button type="button" class="text-blue-600 hover:text-blue-700 font-bold cursor-pointer" onclick="toggleForms()">Sign In</button>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-center text-gray-600 text-sm">
+                    <p>© 2026 SkillShop. All rights Reserverd.</p>
+                    <a href="#" class="text-blue-600 hover:text-blue-700">Privacy Policy</a>
+                    <a href="#" class="text-blue-600 hover:text-blue-700">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/script.js"></script>
+    </body>
+</html>
