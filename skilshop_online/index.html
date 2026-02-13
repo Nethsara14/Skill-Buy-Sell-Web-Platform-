@@ -22,6 +22,7 @@
 
                 <!-- Form Container -->
                 <div class="px-8 py-8">
+
                     <!-- Sign In Form -->
                     <div id="signin-form" class="form-container active">
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h2>
@@ -34,15 +35,26 @@
                             <div>
                                 <label for="signin-email" class="block text-gray-700 text-sm font-semibold mb-2"> Email Address </label>
 
-                                <input type="email" name="email" id="signin-email" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <input type="email" 
+                                       name="email" 
+                                       id="signin-email" 
+                                       placeholder="you@example.com" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                                              focus:ring-blue-500 focus:border-transparent transition duration-200" />
                             </div>
 
                             <!-- Password Input -->
                             <div class="relative">
                                 <label for="signin-password" class="block text-gray-700 text-sm font-semibold mb-2"> Password </label>
-                                <input type="password" name="password" id="signin-password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <input type="password" 
+                                       name="password" 
+                                       id="signin-password" 
+                                       placeholder="••••••••" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                                              focus:ring-blue-500 focus:border-transparent transition duration-200" />
 
-                                <button type="button" onclick="togglePassword('signin-password', this)" class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1">👁️</button>
+                                <button type="button" onclick="togglePassword('signin-password', this)" 
+                                        class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1">👁️</button>
                             </div>
 
                             <!-- Remember Me & Forgot Password -->
@@ -56,12 +68,12 @@
 
                             <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 
                                            rounded-lg hover:from-blue-700 hover:to-indigo-700 transition duration-300 
-                                           tranform hover:scale-105 mt-6">
+                                           transform hover:scale-105 mt-6">
                                  Sign In
                             </button>
 
                             <!-- Error Message -->
-                            <div id="signin-massage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+                            <div id="signin-message" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
 
                         </form>
 
@@ -71,7 +83,7 @@
                         </p>
                     </div>
 
-                    <!-- Sign Up From -->
+        <!-- Sign Up From -->
                     <div id="signup-form" class="form-container hidden">
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
                         <p class="text-gray-600 mb-6">Join thousands of skill sellers and buyers</p>
@@ -81,14 +93,21 @@
 
                             <!-- First Name Input -->
                             <div>
-                                <label for="signup-firstname" class="block text-gray-700 text-sm font-semibold mb-2">First Name</label>
-                                <input type="text" name="firstname" id="signup-firstname" placeholder="Sahan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <label for="signup-firstname" 
+                                       class="block text-gray-700 text-sm font-semibold mb-2">First Name</label>
+                                <input type="text" 
+                                       name="firstname" 
+                                       id="signup-firstname" 
+                                       placeholder="Sahan" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                                              focus:ring-blue-500 focus:border-transparent transition duration-200" />
                                 <span class="text-red-500 text-sm hidden" id="signup-firstname-error"></span>
                             </div>
 
                             <!-- Last Name Input -->
                             <div>
-                                <label for="signup-lastname" class="block text-gray-700 text-sm font-semibold mb-2">Last Name</label>
+                                <label for="signup-lastname" 
+                                       class="block text-gray-700 text-sm font-semibold mb-2">Last Name</label>
                                 <input type="text" 
                                       name="lastname" 
                                       id="signup-lastname" 
@@ -100,14 +119,20 @@
 
                             <!-- Email Address Input -->
                             <div>
-                                <label for="signup-email" class="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
-                                <input type="text" name="email" id="signup-email" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" />
+                                <label for="signup-email" 
+                                       class="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
+                                <input type="text" 
+                                       name="email" 
+                                       id="signup-email" 
+                                       placeholder="you@example.com" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                                              focus:ring-blue-500 focus:border-transparent transition duration-200" />
                                 <span class="text-red-500 text-sm hidden" id="signup-email-error"></span>
                             </div>
 
                             <!-- Password Input -->
                             <div class="relative">
-                                <label for="signup-password" class="block text-gray-700 text-sm font-semibold">Password</label>
+                                <label for="signup-password" class="block text-gray-700 text-sm font-semibold mb2">Password</label>
                                 <input type="password" 
                                        name="password" 
                                        id="signup-password" 
@@ -126,14 +151,21 @@
 
                             <!-- Comfirm Password Input -->
                             <div class="relative">
-                                <label for="signup-comfirm" class="block text-gray-700 text-sm font-semibold">Password</label>
-                                <input type="password" name="password" id="signup-comfirm" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" aria-describedby="signup-comfirm-error" />
-                                <button type="button" onclick="togglePassword('signup-comfirm', this)" 
+                                <label for="signup-confirm" 
+                                       class="block text-gray-700 text-sm font-semibold mb-2">Confirm Password</label>
+                                <input type="password" 
+                                       name="confirm_password" 
+                                       id="signup-confirm" 
+                                       placeholder="••••••••" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+                                              focus:ring-blue-500 focus:border-transparent transition duration-200" 
+                                              aria-describedby="signup-confirm-error" />
+                                <button type="button" onclick="togglePassword('signup-confirm', this)" 
                                         class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus-ring-2 
                                                focus:ring-blue-500 rounded px-1" 
                                                aria-label="Toggle password visibility" 
                                                aria-pressed="false">👁️</button>
-                                <span class="text-red-500 text-sm hidden" id="signup-comfirm-error"></span>
+                                <span class="text-red-500 text-sm hidden" id="signup-confirm-error"></span>
                             </div>
 
                             <!-- Account Type Selection -->
@@ -164,10 +196,10 @@
                             <!-- create Account Button -->
                             <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 
                                            rounded-lg hover:from-blue-700 hover:to-indigo-700 transition hover:scale-105 mt-6" 
-                                           type="button">Create Account</button>
+                                           type="submit">Create Account</button>
 
                             <!-- Error Message-->
-                            <div id="signup-massage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+                            <div id="signup-message" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
                         </form>
 
                         <p class="text-center text-gray-600 mt-6">
@@ -179,7 +211,7 @@
 
                 <!-- Footer -->
                 <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-center text-gray-600 text-sm">
-                    <p>© 2026 SkillShop. All rights Reserverd.</p>
+                    <p>© 2026 SkillShop. All rights Reserved.</p>
                     <a href="#" class="text-blue-600 hover:text-blue-700">Privacy Policy</a>
                     <a href="#" class="text-blue-600 hover:text-blue-700">Terms of Service</a>
                 </div>
