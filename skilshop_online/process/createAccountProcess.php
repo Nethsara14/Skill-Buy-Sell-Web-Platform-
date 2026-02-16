@@ -41,40 +41,36 @@ if (empty($fname)) {
     } else {
         echo "invalid account type";
         exit;
-    
     }
-    
+
     //check email already Exists
-    $check = Database::search("SELECT `id` FROM `user` WHERE `email`=?","s",[$email]);
-    if($check && $check->num_rows > 0){
-       echo "Email is Already Registered";
-    
+    $check = Database::search("SELECT `id` FROM `user` WHERE `email`=?", "s", [$email]);
+    if ($check && $check->num_rows > 0) {
+        echo "Email is Already Registered";
     } else {
 
         // insert user into database
         $insertUser = Database::iud(
-               "INSERT INTO `user` (`fname`, `lname`, `email`, `password_hash`, `active_account_type_id`) VALUES (?,?,?,?,?)",
-               "ssssi",
-               [$fname, $lname, $email, $passwordHash, $accountTypeId]
+            "INSERT INTO `user` (`fname`, `lname`, `email`, `password_hash`, `active_account_type_id`) VALUES (?,?,?,?,?)",
+            "ssssi",
+            [$fname, $lname, $email, $passwordHash, $accountTypeId]
 
         );
 
-        if($insertUser){
+        if ($insertUser) {
 
             //get new scroll id
-             $user_id = Database::getConnection()->insert_id;
+            $user_id = Database::getConnection()->insert_id;
 
-             $insertRole = Database::iud(
+            $insertRole = Database::iud(
                 "INSERT INTO `user_has_account_type`(`user_id` , `account_type_id`)VALUES(?,?) ",
                 "ii",
-                [$user_id , $accountTypeId]
-             );
+                [$user_id, $accountTypeId]
+            );
 
-             echo ($insertRole ? "success" : "Erro Assigning account type.");
-
+            echo ($insertRole ? "success" : "Erro Assigning account type.");
         } else {
             echo "Erro Creating user account";
         }
-        
     }
 }
