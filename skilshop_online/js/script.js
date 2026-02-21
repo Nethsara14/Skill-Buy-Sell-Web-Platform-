@@ -1,5 +1,5 @@
-function toggleForms() {
-
+// Toggle Between Sign In & Sign up Forms
+function toggleForms(){
     var signinForm = document.getElementById("signin-form");
     var signupForm = document.getElementById("signup-form");
 
@@ -8,17 +8,18 @@ function toggleForms() {
 
     signupForm.classList.toggle("hidden");
     signupForm.classList.toggle("active");
+}
 
-}    
+// Toggle Between Password & Text in Passowrd Inputs
+function togglePassword(inputId, btn){
 
-
-function togglePassword(inputId, btn) {
-     var input = document.getElementById(inputId);
-     if (input.type == "password") {
-         input.type = "text";
-         btn.innerHTML = "Hide";
-     } else {
-         input.type = "password";
-         btn.innerHTML = "Show";
-     }
+    var input = document.getElementById(inputId);
+    
+    if(input.type == "password"){
+        input.type = "text";
+        btn.innerHTML = "🙈";
+    }else{
+        input.type = "password";
+        btn.innerHTML = "👁️";
+    }
 }
