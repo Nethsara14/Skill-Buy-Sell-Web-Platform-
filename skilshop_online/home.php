@@ -1,333 +1,475 @@
-<?php
+    <?php include("header.php"); 
 
-    $email = isset($_COOKIE["skillshop_user_email"]) ? $_COOKIE["skillshop_user_email"] : "";
-    //$password = isset($_COOKIE["skillshop_user_password"]) ? $_COOKIE["skillshop_user_password"] : "";
-    $rememberMe = isset($_COOKIE["skillshop_remember"]) ? true : false;
+        $productResult = Database::search("SELECT 
+                                            p.`id`,
+                                            p.`title`,
+                                            p.`description`,
+                                            p.`price`,
+                                            p.`image_url`,
+                                            u.`fname`,
+                                            COUNT(f.`id`) AS `review_count`,
+                                            COALESCE(AVG(f.`rating`),0) AS `avg_rating`
+                                        FROM `product` p
+                                        JOIN `user` u ON p.`seller_id` = u.`id`
+                                        LEFT JOIN `feedback` f ON p.`id` = f.`product_id`
+                                        GROUP BY p.`id`
+                                        LIMIT 6");
 
-?>
+        $products = [];
+        if($productResult && $productResult->num_rows > 0){
+            while($product = $productResult->fetch_assoc()){
+                $products[] = $product;
+            }
+        }
 
-<!DOCTYPE html>
-<html lang="en">
+        // GET Featured testimonials from feedback table
+        $testimonialResult = Database::search(
+            "SELECT
+                f.rating,
+                f.message,
+                u.fname,
+                u.lname,
+                u.id,
+                up.avatar_url
+            FROM feedback f
+            JOIN user u ON f.user_id = u.id
+            LEFT JOIN user_profile up ON u.id = up.user_id
+            WHERE f.is_featured = 1
+            LIMIT 3"
+        );
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Shop</title>
+        $testimonials = [];
+        if($testimonialResult && $testimonialResult->num_rows > 0){
+            while($testimonial = $testimonialResult->fetch_assoc()){
+                $testimonials[] = $testimonial;
+            }
+        }
 
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="assets/images/Icon.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
+        // GET platform statistics
+        $usersResult = Database::search("SELECT COUNT(DISTINCT `id`) AS `total_users` FROM `user`;");
+        $productsCountResult = Database::search("SELECT COUNT(`id`) AS `total_products` FROM `product`;");
+        $feedbackStatusResult = Database::search("SELECT AVG(`rating`) AS `avg_rating` FROM `feedback`;");
+        $ordersStatusResult = Database::search("SELECT COUNT(`id`) AS `total_orders`, SUM(`total_amount`) AS `total_revenue` FROM `order`;");
 
-</head>
+        $totalUsers = ($usersResult && $row = $usersResult->fetch_assoc()) ? $row["total_users"] : 0;
+        $totalProducts = ($productsCountResult && $row = $productsCountResult->fetch_assoc()) ? $row["total_products"] : 0;
+        $avgRating = ($feedbackStatusResult && $row = $feedbackStatusResult->fetch_assoc())
+            ? round(($row["avg_rating"] / 5) * 100, 0)
+            : 0;
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+        $totalOrders = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc()) ? $row["total_orders"]: 0;
+        $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc())
+                        ? intval($row["total_revenue"] / 1000000): 0;
 
-    <div class="w-full max-w-md">
+    ?>
 
-        <!-- Auth Container -->
-        <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
 
-            <!-- Header Section -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-10 text-center text-white">
-                <h1 class="text-4xl font-bold mb-2">SkillShop</h1>
-                <p class="text-blue-100">Buy and Sell Skills with Confidence</p>
-            </div>
+                <div>
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">Learn & Earn Skill Today</h1>
+                    <p class="text-blue-100 text-lg mb-6">Connect with experet skill sellers and buyers in our thriving community</p>
 
-            <!-- Form Container -->
-            <div class="px-8 py-8">
+                    <!-- Search Bar -->
+                    <div class="mb-6 bg-white rounded-lg p-3 flex gap-2">
+                        <input type="text" placeholder="What skill are your looking for?"
+                            class="flex-1 bg-transparent text-gray-900 outline-none text-sm" />
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg
+                        hover:bg-blue-700 font-medium text-sm transition-colors">Search</button>
+                    </div>
 
-                <!-- Sign In Form -->
-                <div id="signin-form" class="form-container active">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h2>
-                    <p class="text-gray-600 mb-6">Sign in to your account to continue</p>
+                    <div class="flex gap-4 flex-col md:flex-row">
 
-                    <form id="signin" class="space-y-4">
+                        <?php if(isset($_SESSION["user_email"])): ?>
 
-                        <input type="hidden" name="action" value="signin" />
+                            <?php if($userRole == "buyer"): ?>
+                                <a href="buyer-dashboard.php" class="bg-white text-blue-600 px-6 py-3 rounded-lg
+                                font-bold hover:shadow-lg inline-block transition-all">Go to Dashboard</a>
+                                <a href="#browse" class="border-2 border-white text-white px-6 py-3 rounded-lg
+                                font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">Browse Skills</a>
+                            <?php endif;?>
 
-                        <!-- Email Input -->
-                        <div>
+                            <?php if($userRole == "seller"): ?>
+                                <a href="seller-dashboard.php" class="bg-white text-blue-600 px-6 py-3 rounded-lg
+                                font-bold hover:shadow-lg inline-block transition-all">Go to Dashboard</a>
+                                <a href="#" class="border-2 border-white text-white px-6 py-3 rounded-lg
+                                font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">Create Skills</a>
+                            <?php endif;?>
 
-                            <label for="signin-email" class="block text-gray-700 text-sm font-semibold mb-2">
-                                Email Address
-                            </label>
+                            <?php else: ?>
+                                <a href="index.php" class="bg-white text-blue-600 px-6 py-3 rounded-lg
+                                font-bold hover:shadow-lg inline-block transition-all">Get Started</a>
 
-                            <input 
-
-                                type="email" 
-                                name="email" 
-                                id="signin-email" 
-                                placeholder="you@example.com"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg 
-                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" 
-
-                                value="<?php echo $email; ?>"
-                            />
+                                <a href="#" class="border-2 border-white text-white px-6 py-3 rounded-lg
+                                font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">Learn More</a>
+                            <?php endif; ?>
 
                         </div>
+                    </div>
 
-                        <!-- Password Input -->
-                        <div class="relative">
-                            <label for="signin-password" class="block text-gray-700 text-sm font-semibold mb-2">
-                                Password
-                            </label>
-                            <input type="password" name="password" id="signin-password" placeholder="••••••••"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg
-                                focus:outline-none focus:ring-2 focus:ring-blue-500
-                                focus:border-transparent transition duration-200" 
-                                
-                                value="<?php //echo $password; ?>"
-                                />
-    
-                            <button type="button" onclick="togglePassword('signin-password',this);"
-                                class="absolute right-3 top-1/2 text-gray-500 focus:outline-none focus:ring-2 
-                                focus:ring-blue-500 rounded px-1">👁️
-                            </button>
-                        </div>
+                    <div class="hidden md:block">
+                        <div class="bg-white bg-opacity-10 rounded-xl p-8 backdrop-blur-sm">
+                            <div class="space-y-4">
 
+                                <div class="flex items-center gap-3 text-blue-100">
+                                    <span class="text-2xl">✨</span>
+                                    <p>Expert Instructors ready to teach</p>
+                                </div>
 
-                        <!-- Remember Me & Forgot Password -->
-                         <div class="flex items-center justify-between">
-                            <label for="remember" class="flex items-center">
-                                <input type="checkbox" name="remember" id="remember" class="w-4 text-blue-600 rounded"
-                                <?php if($rememberMe) echo "checked"; ?> />
-                                <span class="ml-2 text-sm text-gray-600">Remember Me</span>
-                            </label>
-                            <button type="button" onclick="openForgotPasswordModal();" 
-                                class="text-sm text-blue-600 hover:text-blue-700 font-medium bg-none border-none cursor-pointer">
-                                Forgot Password
-                            </button>
-                         </div>
+                                <div class="flex items-center gap-3 text-blue-100">
+                                    <span class="text-2xl">🚀</span>
+                                    <p>Grow your skills or business</p>
+                                </div>
 
-                         <button type="button" onclick="signIn();" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-lg 
-                         hover:from-blue-700 hover:to-indigo-700 transition duration-300 transform hover:scale-105 mt-6">
-                            Sign In
-                        </button>
-
-                        <!-- Error Message -->
-                         <div id="signin-message" class="hidden text-red-500 mt-4 p-3 rounded-lg text-sm">
-
-                         </div>
-                    </form>
-
-                    <p class="text-center text-gray-600 my-6">Don't have an account? 
-                        <button class="text-blue-600 hover:text-blue-700 font-bold cursor-pointer" onclick="toggleForms();">
-                            Sign Up
-                        </button>
-                    </p>
-
-                </div>
-
-                <!-- Sign Up Form -->
-                <div id="signup-form" class="form-container hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
-                    <p class="text-gray-600 mb-6">Join thousands of skill sellers and buyers</p>
-
-                    <form class="space-y-4">
-                        <input type="hidden" name="action" value="signup"/>
-
-                        <!-- First Name Input -->
-                        <div>
-                            <label for="signup-firstname" class="block text-gray-700 text-sm font-semibold mb-2">First Name</label>
-                            <input type="text" name="firstname" id="signup-firstname" placeholder="Sahan"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
-                                focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"/>
-                            <span class="text-red-500 text-sm hidden" id="signup-firstname-error"></span>
-                        </div>
-
-                    <!-- Last Name Input -->
-                        <div>
-                            <label for="signup-lastname" class="block text-gray-700 text-sm font-semibold mb-2">Last Name</label>
-                            <input type="text" name="lastname" id="signup-lastname" placeholder="Perera"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
-                                focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"/>
-                            <span class="text-red-500 text-sm hidden" id="signup-lastname-error"></span>
-                        </div>
-
-                        <!-- Email Address Input -->
-                        <div>
-                            <label for="signup-email" class="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
-                            <input type="email" name="email" id="signup-email" placeholder="you@example.com"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
-                                focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"/>
-                            <span class="text-red-500 text-sm hidden" id="signup-email-error"></span>
-                        </div>
-
-                        <!-- Password Input -->
-                        <div class="relative">
-                            <label for="signup-password" class="block text-gray-700 text-sm font-semibold mb-2">Password</label>
-                            <input type="password" name="password" id="signup-password" placeholder="••••••••"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
-                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                                    aria-describedby="signup-password-error"
-                            />
-                            <button type="button" onclick="togglePassword('signup-password',this);"
-                                    class="absolute right-3 top-1/2 -translate-y-3 text-gray-500
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
-                                    aria-label="Toggle password visibility" aria-pressed="false">👁️
-                            </button>
-                            <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
-                            <span class="text-red-500 text-sm hidden" id="signup-password-error"></span>
-                        </div>
-
-                        <!-- Confirm Password Input -->
-                        <div class="relative">
-                            <label for="signup-confirm" class="block text-gray-700 text-sm font-semibold mb-2">Confirm Password</label>
-                            <input type="password" name="confirm_password" id="signup-confirm" placeholder="••••••••"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none 
-                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                                    aria-describedby="signup-confirm-error"
-                            />
-                            <button type="button" onclick="togglePassword('signup-confirm',this);"
-                                    class="absolute right-3 top-1/2 text-gray-500
-                                    focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
-                                    aria-label="Toggle password visibility" aria-pressed="false">👁️
-                            </button>
-                            <span class="text-red-500 text-sm hidden" id="signup-confirm-error"></span>
-                        </div>
-
-                        <!-- Account Type Selection -->
-                        <div>
-                            <label class="block text-gray-700 text-sm font-semibold mb-3">I am a</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <label for="account_type_seller" class="relative flex items-center cursor-pointer">
-                                    <input type="radio" name="account_type" value="seller"
-                                        class="w-4 h-4 text-blue-600" id="account_type_seller"/>
-                                    <span class="ml-2 text-sm text-gray-700">Skill Seller</span>
-                                </label>
-
-                                <label for="account_type_buyer" class="relative flex items-center cursor-pointer">
-                                    <input type="radio" name="account_type" value="buyer"
-                                        class="w-4 h-4 text-blue-600" id="account_type_buyer"/>
-                                    <span class="ml-2 text-sm text-gray-700">Skill Buyer</span>
-                                </label>
+                                <div class="flex items-center gap-3 text-blue-100">
+                                    <span class="text-2xl">🔒</span>
+                                    <p>Secure transactions</p>
+                                </div>
                             </div>
                         </div>
+                    </div> 
 
-                        <!-- Terms & Conditions -->
-                        <label for="terms_conditions" class="flex items-center">
-                            <input type="checkbox" name="terms" id="terms_conditions"
-                                class="w-4 h-4 text-blue-600 rounded" />
-                            <span class="ml-2 text-sm text-gray-600">I agree to the
-                                <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">
-                                    Terms & Conditions
-                                </a>
-                            </span>
-                        </label>
-
-                        <!-- Create Account Button -->
-                        <button class="w-full  bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-lg hover:from-blue-700
-                                hover:to-indigo-700 transition hover:scale-105 mt-6" type="button" onclick="createAccount();">Create Account</button>
-
-                        <!-- Error Message-->
-                         <div id="signup-message" class="hidden text-red-500 mt-4 p-3 rounded-lg text-sm"></div>
-
-                    </form>
-
-                    <p class="text-center text-gray-600 mt-6">
-                        Already have an account?
-                        <button type="button" class="text-blue-600 hover:text-blue-700 font-bold cursor-pointer" onclick="toggleForms();">Sign In</button>
-                    </p>
-
-                </div>
-
-            </div>
-
-            <!-- Footer -->
-             <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-center text-gray-600 text-sm">
-                <p>© 2026 SkillShop. All rights reserved.</p>
-                    <a href="#" class="text-blue-600 hover:text-blue-700">Privacy Policy</a>
-                    <a href="#" class="text-blue-600 hover:text-blue-700">Terms of Service</a>
-             </div>
-
-        </div>
-
-        <!--  Forgot Password Model -->
-        <div id="forgot-password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                <!-- Modal Header-->
-                 <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex justify-between items-center">
-                    <h3 class="text-xl font-bold">Forgot Password</h3>
-                    <button type="button" onclick="closeForgotPasswordModal();" class="text-white hover:text-gray-200"> ╳ </button>
-                 </div>
-
-                <!-- Step 1 : Email Entry -->
-                <div class="p-6" id="forgot-step-1">
-                    <p class="text-gray-600">Enter your Email to receive the verification code.</p>
-                    <div class="mb-4">
-                        <label for="forgot-email" class="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
-                        <input type="email" id="forgot-email" placeholder="your@example.com" 
-                        class="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div id="forgot-message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
-                    <div class="flex gap-3">
-                        <button type="button" onclick="forgotPassword();" id="forgot-password-send-code-btn"
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2 
-                        rounded-lg hover:from-blue-700 hover:to-indigo-700">Send Code</button>
-                        <button type="button" onclick="closeForgotPasswordModal();"
-                         class="flex-1 text-gray-700 bg-gray-300 font-semibold py-2 rounded-lg hover:bg-gray-400">Cancel</button>
-                    </div>
-                </div>
-
-                <!-- Step 2 : Verification Code -->
-                <div class="p-6" id="forgot-step-2">
-                    <p class="text-gray-600 mb-4">Enter the 6-digit code sent to your email</p>
-                    <div class="mb-4">
-                        <label for="verify-code" class="block text-gray-700 text-sm font-semibold mb-2">Verification code</label>
-                        <input type="text" id="verify-code" placeholder="000000" maxlength="6"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-2xl
-                                tracking-widest"/>
-                    </div>
-                    <div id="verify-message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
-                    <div class="flex gap-3">
-                        <button type="button" onclick="verifyCode();" class="flex-1 bg-gradient-to-r
-                                from-blue-600 to-indigo-600 text-white font-semibold py-2 rounded-lg hover:from-blue-700
-                                hover:to-indigo-700">Verify Code</button>
-                        <button type="button" onclick="backToEmail();" class="flex-1 text-gray-700
-                            bg-gray-300 font-semibold py-2 rounded-lg hover:bg-gray-400">Back</button>
-                    </div>
-                </div>
-
-                <!-- Step 3 : Rest Password -->
-                <div class="p-6" id="forgot-step-3">
-                    <p class="text-gray-600 mb-4">Enter your new password.</p>
-
-                    <div class="mb-4">
-                        <label for="reset-password" class="block text-gray-700 text-sm font-semibold mb-2">New Password</label>
-                        <input type="password" id="reset-password" placeholder="••••••••"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2
-                            focus:ring-blue-500" />
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="reset-password-confirm" class="block text-gray-700 text-sm font-semibold mb-2">Confirm Password</label>
-                        <input type="password" id="reset-password-confirm" placeholder="••••••••"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2
-                            focus:ring-blue-500" />
-                    </div>
-
-                    <div id="reset-message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
-
-                    <div class="flex gap-3">
-                        <button type="button" onclick="resetPassword();" class="flex-1 bg-gradient-to-r
-                            from-blue-600 to-indigo-600 text-white font-semibold py-2 rounded-lg hover:from-blue-700
-                            hover:to-indigo-700">Reset Password</button>
-                        <button type="button" onclick="closeForgotPasswordModal();" class="flex-1 text-gray-700
-                            bg-gray-300 font-semibold py-2 rounded-lg hover:bg-gray-400">Cancel</button>
-                    </div>
                 </div>
 
 
             </div>
         </div>
+    </section>
 
-    </div>
+    <!-- Featured Carousel -->
+    <section id="browse" class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Featured Skills</h2>
+            <p class="text-gray-600">Discover trending skill from top sellers</p>
+        </div>
+
+        <!-- Carousel Container -->
+        <div class="relative group">
+            <div class="overflow-hidden rounded-xl">
+                <div id="carousel" class="flex transition-transform duration-500 ease-out" style="transform:translateX(0);">
+
+                    <!-- Carousel Items -->
+                    <?php if (count($products) > 0): ?>
+                        <?php foreach($products as $product): ?>
+                            <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
+                                <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
+                                    <img src="<?php echo $product["image_url"] ?>"
+                                        class="w-full h-40 object-cover" />
+                                    
+                                    <div class="p-5">
+                                        <h3 class="font-bold text-lg mb-2"><?php echo $product["title"] ?></h3>
+                                        
+                                        <p class="text-gray-600 text-sm mb-4"><?php echo $product["description"] ?></p>
+                                        
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-blue-600 font-bold">
+                                                Rs. <?php echo $product["price"] ?>
+                                            </span>
+                                            
+                                            <span class="text-yellow-400">
+                                                ⭐ <?php echo round($product["avg_rating"],1) ?>
+                                                (<?php echo $product["review_count"] ?>)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <!-- No product message -->
+                        <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
+                            <div class="bg-white rounded-xl overflow-hidden shadow-lg p-8 text-center h-full flex items-center">
+                                <p class="text-gray-500">No products available yet. Check back soon!</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <button onclick="slideCarousel(-1);" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 bg-blue-600 text-white p-3
+            rounded-full hover:bg-blue-700 transition-all hover:scale-110 z-10 opacity-0 group-hover:opacity-100">❮</button>
+
+            <button onclick="slideCarousel(1);" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 bg-blue-600 text-white p-3
+            rounded-full hover:bg-blue-700 transition-all hover:scale-110 z-10 opacity-0 group-hover:opacity-100">❯</button>
+
+        </div>
+
+        <!-- Carousel Indicators -->
+        <div id="carousel-indicators" class="flex justify-center gap-2 mt-8">
+            <button onclick="goToSlide(0);" class="carousel-dot w-3 h-3 rounded-full bg-blue-600 transition-all"></button>
+            <button onclick="goToSlide(1);" class="carousel-dot w-3 h-3 rounded-full bg-gray-300 transition-all"></button>
+        </div>
 
 
+    </section>
 
-    <script src="js/script.js"></script>
-    <script src="js/auth.js"></script>
+    <!-- Categories Section -->
+    <section id="categories" class="bg-gray-50 py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Explore Categories</h2>
 
-</body>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">🎨</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Design</p>
+                </a>
 
-</html>
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">💻</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Development</p>
+                </a>
+
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">📱</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Mobile</p>
+                </a>
+
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">📚</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Education</p>
+                </a>
+
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">🎞️</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Video</p>
+                </a>
+
+                <a href="#" class="group bg-white p-6 rounded-lg text-center shadow hover:shadow-lg transition-all
+                cursor-pointer hover:scale-105 hover:border-2 hover:border-blue-600">
+                    <div class="text-5xl mb-3 group-hover:scale-110 transition-transform">💼</div>
+                    <p class="font-semibold text-gray-800 group-hover:text-blue-600">Business</p>
+                </a>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- Testimonials Section -->
+    <section class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">What Our Users Say</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <?php if(count($testimonials) > 0): ?>
+                <?php foreach($testimonials as $idx => $testimonial): ?>
+                    <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-2xl transition-shadow hover:scale-105 duration-300">
+                        <div class="flex items-center mb-4">
+                            <img src="<?php echo $testimonial["avatar_url"]; ?>" class="w-12 h-12 rounded-full mr-4"/>
+                            <div>
+                                <p class="font-bold text-gray-900"><?php echo $testimonial["fname"] . " " . $testimonial["lname"]; ?></p>
+                                <p class="text-sm text-yellow-400">
+                                    <?php
+                                        $stars = '';
+                                        for($i = 0; $i < $testimonial["rating"]; $i++){
+                                            $stars .= '⭐';
+                                        }
+                                        echo $stars;
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600"><?php echo $testimonial["message"]; ?></p>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center col-span-3">
+                    <p class="text-gray-500">No testimonial yet. Be the first to leave a review!</p>
+                </div>
+            <?php endif; ?>
+
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 md:py-24 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+
+                <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">
+                        <?php echo number_format($totalUsers); ?>+
+                    </div>
+                    <p class="text-blue-100">Active Users</p>
+                </div>
+
+                <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">
+                        <?php echo number_format($totalProducts); ?>+
+                    </div>
+                    <p class="text-blue-100">Skills Listed</p>
+                </div>
+
+                <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">
+                        <?php echo $avgRating; ?>%
+                    </div>
+                    <p class="text-blue-100">Satisfaction Rate</p>
+                </div>
+
+                <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">
+                        <?php echo number_format($totalRevenue); ?>M+
+                    </div>
+                    <p class="text-blue-100">Transaction Value</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    
+
+
+    <!-- How it works -->
+    <section class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">How It Works</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <div class="text-center group">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full w-16 h-16 flex items-center
+                justify-center text-2xl text-white mx-auto mb-4 group-hover:scale-110 transition-transform">1</div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Create Account</h3>
+                <p class="text-gray-600 text-sm">Sign up as a buyer or seller in minutes</p>
+            </div>
+
+            <div class="text-center group">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full w-16 h-16 flex items-center
+                justify-center text-2xl text-white mx-auto mb-4 group-hover:scale-110 transition-transform">2</div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Browse or List</h3>
+                <p class="text-gray-600 text-sm">Explore skills or create your own content</p>
+            </div>
+
+            <div class="text-center group">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full w-16 h-16 flex items-center
+                justify-center text-2xl text-white mx-auto mb-4 group-hover:scale-110 transition-transform">2</div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Connect & Leaarn</h3>
+                <p class="text-gray-600 text-sm">Interract with instructors and comminutity</p>
+            </div>
+
+            <div class="text-center group">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full w-16 h-16 flex items-center
+                justify-center text-2xl text-white mx-auto mb-4 group-hover:scale-110 transition-transform">3</div>
+                <h3 class="font-bold text-lg text-gray-900 mb-2">Grow & Earn</h3>
+                <p class="text-gray-600 text-sm">Build skills or passive income stream</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 md:p-16 text-center text-white shadow-2xl">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Start Your Journey?</h2>
+            <p class="text-blue-100 text-lg mb-8">Joint thousands of learners and sellers earning on Skillshop today</p>
+
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <?php if (isset($_SESSION["user_email"])): ?>
+
+                    <?php if($userRole == "buyer"): ?>
+                        <a href="buyer-dashboard.php" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold
+                        hover:shadow-2xl inline-block transition-all hover:scale-105">Go to Dashboard</a>
+                        <a href="#browse" class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold
+                        hover:bg-white hover:bg-opacity-20 inline-block transition-all">Explore More</a>
+
+                    <?php elseif($userRole == "seller"): ?>
+                        <a href="seller-dashboard.php" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold
+                        hover:shadow-2xl inline-block transition-all hover:scale-105">Go to Dashboard</a>
+                        <a href="#" class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold
+                        hover:bg-white hover:bg-opacity-20 inline-block transition-all">Create New Skill</a>
+
+                    <?php endif; ?>
+
+                <?php else: ?>
+                    <a href="index.php" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold
+                    hover:shadow-2xl inline-block transition-all hover:scale-105">Sign up Now</a>
+
+                    <a href="#browse" class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold
+                    hover:bg-white hover:bg-opacity-20 inline-block transition-all">Learn More</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        var currentSlide = 0;
+        var itemsPerView = window.innerWidth >= 768 ? 3 : 1;
+        var totalItems = <?php echo count($products); ?>;
+        var maxSlides = Math.ceil(totalItems / itemsPerView) - 1;
+
+        function slideCarousel(direction){
+            currentSlide += direction;
+
+            if(currentSlide > maxSlides){
+                currentSlide = 0;
+            }else if (currentSlide < 0){
+                currentSlide = maxSlides;
+            }
+
+            updateCarousel();
+
+        }
+
+        function goToSlide(slide){
+            currentSlide = slide;
+            updateCarousel();
+        }
+
+        function updateCarousel() {
+            var carousel = document.getElementById("carousel");
+            var slideWidth = 100;
+            var offset = -currentSlide * slideWidth;
+            carousel.style.transform = `translateX(${offset}%)`;
+
+            // Update dots
+            var dotsContainer = document.getElementById("carousel-indicators");
+            var dots = dotsContainer.querySelectorAll(".carousel-dot");
+
+            dots.forEach((dot, index)=>{
+                if(index == currentSlide){
+                    dot.classList.add("bg-blue-600");
+                    dot.classList.remove("bg-gray-300");
+                } else {
+                    dot.classList.remove("bg-blue-600");
+                    dot.classList.add("bg-gray-300");
+                }
+            });
+        }
+
+        // Auto Slide Carousel every 5 seconds
+        setInterval(() => {
+            slideCarousel(1);
+        }, 7000);
+
+        // Handle responsive changes
+        window.addEventListener("resize",() => {
+            updateCarousel();
+        });
+
+        // Initialize dots onload
+        window.addEventListener("load", () => {
+            var dotsContainer = document.getElementById("carousel-indicators");
+            dotsContainer.innerHTML = "";
+            for(var i = 0; i <= maxSlides; i++){
+                var dot = document.createElement("button");
+                dot.onclick = () => goToSlide(i);
+                dot.className = `carousel-dot w-3 h-3 rounded-full transition-all ${i == 0 ? "bg-blue-600" : "bg-gray-300"}`;
+                dotsContainer.appendChild(dot);
+            }
+        });
+
+
+    </script>
+
+
+<?php include("footer.php"); ?>
